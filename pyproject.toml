@@ -1,0 +1,11 @@
+[project]
+name = "http-protcol"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115.13",
+    "hypercorn>=0.17.3",
+    "uvicorn[standarad]>=0.34.3",
+]
