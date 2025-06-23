@@ -1,11 +1,29 @@
-from fastapi import FastAPI
 import uvicorn
 import asyncio
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
+from urllib.parse import urlparse
+from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi import FastAPI, Request
 
+# read RFC 7230, Section 5.3.2
+
+class AbsoluteFormMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        raw_path = request.scope["path"]
+
+        # Detect and parse absolute-form (e.g., "http://host/path")
+        print("Request Received: ", raw_path)
+        if raw_path.startswith("http://") or raw_path.startswith("https://"):
+            parsed = urlparse(raw_path)
+            request.scope["path"] = parsed.path or "/"
+            request.scope["root_path"] = ""
+            request.scope["query_string"] = parsed.query.encode()
+
+        return await call_next(request)
 
 app = FastAPI()
+app.add_middleware(AbsoluteFormMiddleware)
 
 @app.get("/")
 def root():
@@ -28,7 +46,7 @@ async def main():
     if USE_TLS:
         config.certfile = "cert.pem"
         config.keyfile = "key.pem"
-        config.alpn_protocols = ["h2", "http/1.1"] #"h2", "http/1.1"
+        config.alpn_protocols = ["http/1.1"] #"h2", "http/1.1"
 
     await serve(app, config)
 
