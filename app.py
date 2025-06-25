@@ -1,10 +1,13 @@
 import uvicorn
 import asyncio
+import multiprocessing
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 from urllib.parse import urlparse
 from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, File, UploadFile  # Removed unused Form import
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 # read RFC 7230, Section 5.3.2
 
@@ -22,8 +25,9 @@ class AbsoluteFormMiddleware(BaseHTTPMiddleware):
 
         return await call_next(request)
 
+
 app = FastAPI()
-app.add_middleware(AbsoluteFormMiddleware)
+# app.add_middleware(AbsoluteFormMiddleware)
 
 @app.get("/")
 def root():
@@ -33,33 +37,47 @@ def root():
 def hello():
     return {"message": "Hello from /hello endpoint!"}
 
+class HelloRequest(BaseModel):
+    name: str
+    age: int
+
+@app.post("/hello")
+def hello_post(body: HelloRequest):
+    return {"message": f"Hello {body.name}, you are {body.age} years old!"}
+
+@app.post("/upload")
+async def upload_file(file: UploadFile = File(...)):
+    content = await file.read()
+    # For demonstration, just return file info and description
+    return JSONResponse({
+        "filename": file.filename,
+        "content_type": file.content_type,
+        "size": len(content)
+    })
+
 
 # === Configuration ===
-USE_TLS = True               # Set to True for HTTPS
 HOST = "0.0.0.0"
-PORT = 8080 if not USE_TLS else 8443
+HTTP_PORT = 8082
+HTTPS_PORT = 8443
 
-async def main():
+async def run_https():
     config = Config()
-    config.bind = [f"{HOST}:{PORT}"]
-
-    if USE_TLS:
-        config.certfile = "cert.pem"
-        config.keyfile = "key.pem"
-        config.alpn_protocols = ["http/1.1"] #"h2", "http/1.1"
-
+    config.bind = [f"{HOST}:{HTTPS_PORT}"]
+    config.certfile = "cert.pem"
+    config.keyfile = "key.pem"
+    config.alpn_protocols = ["http/1.1"]
     await serve(app, config)
 
+def run_http():
+    uvicorn.run("app:app", host=HOST, port=HTTP_PORT)
 
 if __name__ == "__main__":
+    # Start HTTP server in a separate process
+    http_proc = multiprocessing.Process(target=run_http)
+    http_proc.start()
 
-    if USE_TLS:
-        asyncio.run(main())
-    else:
-        uvicorn_kwargs = {
-            "app": "app:app",
-            "host": HOST,
-            "port": PORT,
-        }   
+    # Start HTTPS server in the main process (async)
+    asyncio.run(run_https())
 
-        uvicorn.run(**uvicorn_kwargs)
+    http_proc.join()

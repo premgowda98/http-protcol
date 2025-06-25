@@ -109,3 +109,11 @@ Server       Sees absolute-form (if not rewritten)GET /path HTTP/2
 
 
 
+```bash
+curl -X POST "http://localhost:8080/hello" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Alice", "age": 30}'
+
+curl -X POST "http://localhost:8080/upload" \
+  -F "file=@/path/to/your/file.txt"
+```

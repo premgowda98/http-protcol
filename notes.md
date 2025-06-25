@@ -18,3 +18,23 @@
             1.  Here look at client hello message, it will have `application_layer_protocol_negotiation` extension
     2.  For HTTP request the client, if cleints want a http2 connection it sends something like **prior knowledge**
         1. If server does not 
+
+## HTTP versions
+
+| Feature                       | HTTP/0.9               | HTTP/1.0              | HTTP/1.1             | HTTP/2                       | HTTP/3                  |
+| ----------------------------- | ---------------------- | --------------------- | -------------------- | ---------------------------- | ----------------------- |
+| **Release Year**              | 1991                   | 1996                  | 1997                 | 2015                         | 2022 (RFC 9114)         |
+| **Protocol Type**             | Text                   | Text                  | Text                 | Binary                       | Binary (over QUIC/UDP)  |
+| **Transport**                 | TCP                    | TCP                   | TCP                  | TCP                          | QUIC (UDP)              |
+| **Persistent Connections**    | ❌                      | ❌                     | ✅ (default)          | ✅                            | ✅                       |
+| **Request Methods**           | `GET` only             | `GET`, `HEAD`, `POST` | All standard methods | All standard methods         | All standard methods    |
+| **Headers Support**           | ❌                      | ✅                     | ✅                    | ✅                            | ✅                       |
+| **Status Codes**              | ❌ (no response status) | ✅                     | ✅                    | ✅                            | ✅                       |
+| **Chunked Transfer Encoding** | ❌                      | ❌                     | ✅                    | ✅                            | ✅                       |
+| **Pipelining**                | ❌                      | ❌                     | ✅ (rarely used)      | ❌ (replaced by multiplexing) | ❌ (multiplexing native) |
+| **Multiplexing**              | ❌                      | ❌                     | ❌                    | ✅                            | ✅                       |
+| **Header Compression**        | ❌                      | ❌                     | ❌                    | ✅ (HPACK)                    | ✅ (QPACK)               |
+| **Server Push**               | ❌                      | ❌                     | ❌                    | ✅                            | 🚫 (removed from spec)  |
+| **TLS Support**               | ❌                      | Manual via HTTPS      | ✅                    | ✅                            | ✅ (mandatory)           |
+| **Connection Setup**          | Simple                 | Simple                | Moderate             | Slower (TCP+TLS)             | Fast (0-RTT support)    |
+| **Prioritization**            | ❌                      | ❌                     | ❌                    | ✅                            | ✅                       |
