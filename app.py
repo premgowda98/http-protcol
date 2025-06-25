@@ -5,7 +5,7 @@ from hypercorn.asyncio import serve
 from hypercorn.config import Config
 from urllib.parse import urlparse
 from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi import FastAPI, Request, File, UploadFile  # Removed unused Form import
+from fastapi import FastAPI, Request, File, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -56,7 +56,6 @@ async def upload_file(file: UploadFile = File(...)):
     })
 
 
-# === Configuration ===
 HOST = "0.0.0.0"
 HTTP_PORT = 8082
 HTTPS_PORT = 8443
@@ -73,11 +72,9 @@ def run_http():
     uvicorn.run("app:app", host=HOST, port=HTTP_PORT)
 
 if __name__ == "__main__":
-    # Start HTTP server in a separate process
     http_proc = multiprocessing.Process(target=run_http)
     http_proc.start()
 
-    # Start HTTPS server in the main process (async)
     asyncio.run(run_https())
 
     http_proc.join()
